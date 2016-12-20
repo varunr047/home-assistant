@@ -57,22 +57,6 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         config.get(CONF_MAC).encode().replace(b':', b''))
     sensor_type = config.get(CONF_TYPE)
 
-    if sensor_type == "rm":
-        broadlink_device = broadlink.rm((ip_addr, 80), mac_addr)
-        switch = BroadlinkRMSwitch
-    elif sensor_type == "sp1":
-        broadlink_device = broadlink.sp1((ip_addr, 80), mac_addr)
-        switch = BroadlinkSP1Switch
-    elif sensor_type == "sp2":
-        broadlink_device = broadlink.sp2((ip_addr, 80), mac_addr)
-        switch = BroadlinkSP2Switch
-
-    broadlink_device.timeout = config.get(CONF_TIMEOUT)
-    try:
-        broadlink_device.auth()
-    except socket.timeout:
-        _LOGGER.error("Failed to connect to device.")
-
     persistent_notification = loader.get_component('persistent_notification')
 
     @asyncio.coroutine
@@ -103,7 +87,24 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         persistent_notification.async_create(hass,
                                              "Did not received any signal",
                                              title='Broadlink switch')
-    hass.services.register(DOMAIN, SERVICE_LEARN, _learn_command)
+
+    if sensor_type == "rm":
+        broadlink_device = broadlink.rm((ip_addr, 80), mac_addr)
+        switch = BroadlinkRMSwitch
+        hass.services.register(DOMAIN, SERVICE_LEARN + '_' + ip_addr,
+                               _learn_command)
+    elif sensor_type == "sp1":
+        broadlink_device = broadlink.sp1((ip_addr, 80), mac_addr)
+        switch = BroadlinkSP1Switch
+    elif sensor_type == "sp2":
+        broadlink_device = broadlink.sp2((ip_addr, 80), mac_addr)
+        switch = BroadlinkSP2Switch
+
+    broadlink_device.timeout = config.get(CONF_TIMEOUT)
+    try:
+        broadlink_device.auth()
+    except socket.timeout:
+        _LOGGER.error("Failed to connect to device.")
 
     for object_id, device_config in devices.items():
         switches.append(
