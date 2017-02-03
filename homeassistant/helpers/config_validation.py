@@ -314,15 +314,23 @@ def datetime(value):
         return value
 
     try:
-        date_val = dt_util.parse_datetime(value)
+        datetime_val = dt_util.parse_datetime(value)
     except TypeError:
-        date_val = None
+        datetime_val = None
 
-    if date_val is None:
+    if datetime_val is None:
         raise vol.Invalid('Invalid datetime specified: {}'.format(value))
 
-    return date_val
+    return datetime_val
 
+def date(value):
+    """Validate date."""
+    date_val = dt_util.parse_date(value)
+
+    if date_val is None:
+        raise vol.Invalid('Invalid time specified: {}'.format(value))
+
+    return date_val
 
 def time_zone(value):
     """Validate timezone."""
